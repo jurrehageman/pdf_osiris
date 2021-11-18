@@ -19,28 +19,27 @@ def get_comm_args():
 def extract_pdf(infile):
     data = []
     with pdfplumber.open(infile) as pdf:
-        for page in pdf.pages:
-            text = page.extract_text()
-            data.append(text)
+        for num, page in enumerate(pdf.pages):
+            if num > 0:
+                text = page.extract_text()
+                data.append(text)
     return data
 
 
 def parse_text(data):
     student_slb = {}
     for num, line in enumerate(data):
-        if "Datum" in line:
-            datestamp = line.split()[8]
-        if datestamp in line and num > 0:
-            item = line.split("\n")
-            slb = item[2][-5: -1]
-            students = item[7:-1]
-            if students:
-                for student in students:
-                    student = student.split(",")
-                    student_num = student[0][0:6].strip()
-                    last_name = student[0][7:].strip()
-                    first_name = student[1].split("BO")[0].strip()
-                    student_slb[student_num] = (slb, last_name, first_name)
+        item = line.split("\n")
+        slb = item[2][-5: -1]
+        students = item[6:-1]
+        if students:
+            for student in students:
+                student_num = student[0:6].strip()
+                comma_pos = student.find(",")
+                last_name = student[7:comma_pos].strip()
+                BO_pos = student.find(" BO ")
+                first_name = student[comma_pos + 1: BO_pos].strip()
+                student_slb[student_num] = (slb, last_name, first_name)
     return student_slb
 
 
@@ -57,7 +56,7 @@ def write_excel(data, outfile):
         col += 1
     row = 1
     for student in sorted(data):
-        print("processing:", student, data[student][1], data[student][1], data[student][0])
+        #print("processing:", student, data[student][1], data[student][2], data[student][0])
         col = 0
         row_data = [student, data[student][1], data[student][2], data[student][0]]
         for i in row_data:
@@ -73,11 +72,11 @@ def main():
     out_file = args.output_file
     pdf_content = extract_pdf(in_file)
     student_data = parse_text(pdf_content)
-    #write_file(student_data, out_file)
     write_excel(student_data, out_file)
     print()
     print("Data written to", out_file + ".xlsx")
     print("Done")
+    print("*" * 20)
 
 
 if __name__ == "__main__":
