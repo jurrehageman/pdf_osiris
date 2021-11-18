@@ -9,9 +9,9 @@
 
 # pdf files #
 ######################
-.pdf
+*.pdf
 
 # output files #
 ######################
-.xlsx
-.csv
+*.xlsx
+*.csv
