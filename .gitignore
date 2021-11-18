@@ -1,0 +1,17 @@
+# Python generated files #
+######################
+.ipynb_checkpoints
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+
+# pdf files #
+######################
+.pdf
+
+# output files #
+######################
+.xlsx
+.csv
