@@ -2,18 +2,31 @@ import pdfplumber
 import argparse
 import xlsxwriter
 
+# Globals
+slb_file = "slb.csv" 
+
 def get_comm_args():
     """
     Reads command line arguments
     """
     parser = argparse.ArgumentParser(
-        description="Parse pdf Osiris")
+        description="Parse pdf Osiris")     
     parser.add_argument("pdf_file",
                         help="the path to the pdf File downloaded from Osiris")
     parser.add_argument("output_file",
                         help="the path to the csv file with the output")
     args = parser.parse_args()
     return args
+
+
+def read_slb(slb_file):
+    slb_list = []
+    with open(slb_file) as f:
+        for line in f:
+            line = line.strip()
+            if not line in slb_list:
+                slb_list.append(line)
+    return slb_list
 
 
 def extract_pdf(infile):
@@ -26,20 +39,25 @@ def extract_pdf(infile):
     return data
 
 
-def parse_text(data):
+def parse_text(slb_list, data):
     student_slb = {}
     for num, line in enumerate(data):
         item = line.split("\n")
         slb = item[2][-5: -1]
-        students = item[6:-1]
-        if students:
-            for student in students:
-                student_num = student[0:6].strip()
-                comma_pos = student.find(",")
-                last_name = student[7:comma_pos].strip()
-                BO_pos = student.find(" BO ")
-                first_name = student[comma_pos + 1: BO_pos].strip()
-                student_slb[student_num] = (slb, last_name, first_name)
+        if slb in slb_list:
+            students = item[6:-1]
+            if students:
+                for student in students:
+                    student_num = student[0:6].strip()
+                    comma_pos = student.find(",")
+                    last_name = student[7:comma_pos].strip()
+                    BO_pos = student.find(" BO ")
+                    first_name = student[comma_pos + 1: BO_pos].strip()
+                    if student_num in student_slb:
+                        print("Warning! duplicate entry:", student_num, last_name, first_name, "already assigned to:", student_slb[student_num][0])
+                    else:
+                        student_slb[student_num] = (slb, last_name, first_name)
+
     return student_slb
 
 
@@ -70,8 +88,9 @@ def main():
     args = get_comm_args()
     in_file = args.pdf_file
     out_file = args.output_file
+    slb_list = read_slb(slb_file)
     pdf_content = extract_pdf(in_file)
-    student_data = parse_text(pdf_content)
+    student_data = parse_text(slb_list, pdf_content)
     write_excel(student_data, out_file)
     print()
     print("Data written to", out_file + ".xlsx")
