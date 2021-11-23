@@ -29,11 +29,10 @@ pip install xlsxwriter
 
 ## Running the generate_dummy_data.py module
 
-This module will generate some dummy data to test
 
 Example:
 ```
-python3 parse_pdf.py my_pdf.pdf my_excel
+python parse_pdf.py my_pdf.pdf my_excel
 ```
 
 ### Arguments:
