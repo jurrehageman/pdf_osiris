@@ -27,7 +27,7 @@ pip install xlsxwriter
 ```
 
 
-## Running the generate_dummy_data.py module
+## Running the parse_pdf.py module
 
 
 Example:
