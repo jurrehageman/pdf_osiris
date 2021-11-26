@@ -57,7 +57,6 @@ def parse_text(slb_list, data):
                         print("Warning! duplicate entry:", student_num, last_name, first_name, "already assigned to:", student_slb[student_num][0])
                     else:
                         student_slb[student_num] = (slb, last_name, first_name)
-
     return student_slb
 
 
@@ -74,7 +73,6 @@ def write_excel(data, outfile):
             worksheet.write(row, col, i)
             col += 1
         row += 1
-    print(row, col)
     worksheet.add_table(0, 0, row - 1, col - 1, {'columns': [{'header': 'Student Nummer'},
                                                             {'header': 'Achternaam'},
                                                             {'header': 'Voornaam'},
