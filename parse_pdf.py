@@ -64,14 +64,7 @@ def parse_text(slb_list, data):
 def write_excel(data, outfile):
     workbook = xlsxwriter.Workbook(outfile + ".xlsx")
     worksheet = workbook.add_worksheet()
-    bold = workbook.add_format({'bold': True})
-    worksheet.autofilter('A1:D1')
-    header = ["Student Nummer", "Achternaam", "Voornaam", "SLB-er"]
-    row = 0
     col = 0
-    for i in header:
-        worksheet.write(row, col, i, bold)
-        col += 1
     row = 1
     for student in sorted(data):
         #print("processing:", student, data[student][1], data[student][2], data[student][0])
@@ -81,6 +74,12 @@ def write_excel(data, outfile):
             worksheet.write(row, col, i)
             col += 1
         row += 1
+    print(row, col)
+    worksheet.add_table(0, 0, row - 1, col - 1, {'columns': [{'header': 'Student Nummer'},
+                                                            {'header': 'Achternaam'},
+                                                            {'header': 'Voornaam'},
+                                                            {'header': 'SLB-er'},
+                                                            ]})
     workbook.close()
 
 
