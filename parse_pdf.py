@@ -40,9 +40,11 @@ def extract_pdf(infile):
 
 
 def parse_text(slb_list, data):
+    """This needs to be improved"""
     student_slb = {}
     for num, line in enumerate(data):
         item = line.split("\n")
+        item = [i for i in item if len(i) > 6] # get rid of BO (*) and CH (*) lines
         slb = item[2][-5: -1]
         if slb in slb_list:
             students = item[6:-1]
@@ -53,6 +55,10 @@ def parse_text(slb_list, data):
                     last_name = student[7:comma_pos].strip()
                     BO_pos = student.find(" BO ")
                     first_name = student[comma_pos + 1: BO_pos].strip()
+                    if "(" in first_name:
+                        first_name = first_name[: first_name.find("(")] # sometimes no BO but comma
+                    first_name = first_name.split()
+                    first_name = ' '.join(i for i in first_name if not i.isupper()) # get rid of junk
                     if student_num in student_slb:
                         print("Warning! duplicate entry:", student_num, last_name, first_name, "already assigned to:", student_slb[student_num][0])
                     else:
