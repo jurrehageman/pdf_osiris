@@ -70,9 +70,9 @@ def parse_text(data):
     return slb_dict
 
 
-def print_stats(student_data, file_name, args, slb_list):
+def print_stats(student_data, file_name, verbose_status, slb_list):
     print("currently parsing:", file_name)
-    if args.verbose:
+    if verbose_status:
         unique_students = set()
         slb_ilst_students = set()
         slb_other = set()
@@ -126,12 +126,13 @@ def write_excel(slb_list, data, outfile):
 
 def main():
     args = get_comm_args()
+    verbose_status = args.verbose
     in_file = args.pdf_file
     out_file = args.output_file
     slb_list = read_slb(slb_file)
     pdf_content = extract_pdf(in_file)
     student_data = parse_text(pdf_content)
-    print_stats(student_data, in_file, args, slb_list)
+    print_stats(student_data, in_file, verbose_status, slb_list)
     write_excel(slb_list, student_data, out_file)
     print()
     print("Data written to", out_file + ".xlsx")
