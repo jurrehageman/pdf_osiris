@@ -15,6 +15,8 @@ def get_comm_args():
                         help="the path to the pdf File downloaded from Osiris")
     parser.add_argument("output_file",
                         help="the path to the csv file with the output")
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help="verbose mode")
     args = parser.parse_args()
     return args
 
@@ -39,46 +41,81 @@ def extract_pdf(infile):
     return data
 
 
-def parse_text(slb_list, data):
+def parse_text(data):
     """This needs to be improved"""
-    student_slb = {}
-    for num, line in enumerate(data):
+    slb_dict = {}
+    for line in data:
+        student_list = []
         item = line.split("\n")
         item = [i for i in item if len(i) > 6] # get rid of BO (*) and CH (*) lines
         slb = item[2][-5: -1]
-        if slb in slb_list:
-            students = item[6:-1]
-            if students:
-                for student in students:
-                    student_num = student[0:6].strip()
-                    comma_pos = student.find(",")
-                    last_name = student[7:comma_pos].strip()
-                    BO_pos = student.find(" BO ")
-                    first_name = student[comma_pos + 1: BO_pos].strip()
-                    if "(" in first_name:
-                        first_name = first_name[: first_name.find("(")] # sometimes no BO but comma
-                    first_name = first_name.split()
-                    first_name = ' '.join(i for i in first_name if not i.isupper()) # get rid of junk
-                    if student_num in student_slb:
-                        print("Warning! duplicate entry:", student_num, last_name, first_name, "already assigned to:", student_slb[student_num][0])
-                    else:
-                        student_slb[student_num] = (slb, last_name, first_name)
-    return student_slb
+        students = item[6:]
+        for student in students:
+            student_dict = {}
+            student_num = student[0:6].strip()
+            comma_pos = student.find(",")
+            last_name = student[7:comma_pos].strip()
+            BO_pos = student.find(" BO ")
+            first_name = student[comma_pos + 1: BO_pos].strip()
+            if "(" in first_name:
+                first_name = first_name[: first_name.find("(")] # sometimes no BO but comma
+            first_name = first_name.split()
+            first_name = ' '.join(i for i in first_name if not i.isupper()) # get rid of junk     
+            student_dict['student_num'] = student_num
+            student_dict['last_name'] = last_name
+            student_dict['first_name'] = first_name
+            student_dict['slb'] = slb
+            student_list.append(student_dict)
+        slb_dict[slb] = student_list
+    return slb_dict
 
 
-def write_excel(data, outfile):
+def print_stats(student_data, file_name, args, slb_list):
+    print("currently parsing:", file_name)
+    if args.verbose:
+        unique_students = set()
+        slb_ilst_students = set()
+        slb_other = set()
+        print()
+        for slb in sorted(student_data):
+            student_nums = [i["student_num"] for i in student_data[slb]]
+            unique_students.update(student_nums)
+            #print("{0:<6}{1:<3} students {2}".format(slb, len(student_data[slb]), student_nums))
+            print("{0:<6}{1:<3} students".format(slb, len(student_data[slb])))
+            if slb in slb_list:
+                slb_ilst_students.update(student_nums)
+            else:
+                slb_other.update(student_nums)
+        print()
+        print("Total number of students:", len(unique_students))
+        print("Total number of students, ILST SLBer:", len(slb_ilst_students), "(This will be written to Excel)")
+        print("Total number of students, other SLBer:", len(slb_other))
+        not_assigned = slb_other.difference(slb_ilst_students)
+        print("Number of students other SLBer not assigned to ILST SLBer:", len(not_assigned))
+        print()
+        if not_assigned:
+            print("Not assigned:")
+            for slb in sorted(student_data):
+                for student in student_data[slb]:
+                    if student["student_num"] in not_assigned:
+                        print(student)
+    print()
+
+
+def write_excel(slb_list, data, outfile):
     workbook = xlsxwriter.Workbook(outfile + ".xlsx")
     worksheet = workbook.add_worksheet()
     col = 0
     row = 1
-    for student in sorted(data):
-        #print("processing:", student, data[student][1], data[student][2], data[student][0])
-        col = 0
-        row_data = [student, data[student][1], data[student][2], data[student][0]]
-        for i in row_data:
-            worksheet.write(row, col, i)
-            col += 1
-        row += 1
+    for slb in sorted(data):
+        if slb in slb_list:
+            for student in data[slb]:
+                col = 0
+                row_data = [student["student_num"], student["last_name"], student["first_name"], student["slb"]]
+                for i in row_data:
+                    worksheet.write(row, col, i)
+                    col += 1
+                row += 1
     worksheet.add_table(0, 0, row - 1, col - 1, {'columns': [{'header': 'Student Nummer'},
                                                             {'header': 'Achternaam'},
                                                             {'header': 'Voornaam'},
@@ -93,8 +130,9 @@ def main():
     out_file = args.output_file
     slb_list = read_slb(slb_file)
     pdf_content = extract_pdf(in_file)
-    student_data = parse_text(slb_list, pdf_content)
-    write_excel(student_data, out_file)
+    student_data = parse_text(pdf_content)
+    print_stats(student_data, in_file, args, slb_list)
+    write_excel(slb_list, student_data, out_file)
     print()
     print("Data written to", out_file + ".xlsx")
     print("Done")
