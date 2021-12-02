@@ -1,6 +1,7 @@
 import pdfplumber
 import argparse
 import xlsxwriter
+import collections
 
 # Globals
 slb_file = "slb.csv" 
@@ -73,12 +74,14 @@ def parse_text(data):
 def print_stats(student_data, file_name, verbose_status, slb_list):
     print("currently parsing:", file_name)
     if verbose_status:
+        total_students = 0
         unique_students = set()
         slb_ilst_students = set()
         slb_other = set()
         print()
         for slb in sorted(student_data):
             student_nums = [i["student_num"] for i in student_data[slb]]
+            total_students += len(student_nums)
             unique_students.update(student_nums)
             #print("{0:<6}{1:<3} students {2}".format(slb, len(student_data[slb]), student_nums))
             print("{0:<6}{1:<3} students".format(slb, len(student_data[slb])))
@@ -87,7 +90,8 @@ def print_stats(student_data, file_name, verbose_status, slb_list):
             else:
                 slb_other.update(student_nums)
         print()
-        print("Total number of students:", len(unique_students))
+        print("Total number of students:", total_students)
+        print("Total number of unique students:", len(unique_students))
         print("Total number of students, ILST SLBer:", len(slb_ilst_students), "(This will be written to Excel)")
         print("Total number of students, other SLBer:", len(slb_other))
         not_assigned = slb_other.difference(slb_ilst_students)
@@ -99,6 +103,16 @@ def print_stats(student_data, file_name, verbose_status, slb_list):
                 for student in student_data[slb]:
                     if student["student_num"] in not_assigned:
                         print(student)
+        duplicates = slb_other.intersection(slb_ilst_students)
+        print()
+        print("Number of duplicates:", len(duplicates))
+        print()
+        print("Duplicates:")
+        for slb in sorted(student_data):
+                for student in student_data[slb]:
+                    if student["student_num"] in duplicates:
+                        print(student)                  
+        print()
     print()
     print("*" * 40)
     print()
