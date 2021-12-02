@@ -32,7 +32,7 @@ pip install xlsxwriter
 
 Example:
 ```
-python parse_pdf.py my_pdf.pdf my_excel
+python parse_pdf.py -v my_pdf.pdf my_excel
 ```
 
 ### Arguments:
@@ -41,6 +41,9 @@ Required argument:
 - my_pdf.pdf: the path to the pdf file
 - my_excel: the path to the Excel file. Note: the suffix .xlsx is NOT required. 
 
+Optional arguments:
+- v: --verbose mode
+
 ## Running the batch_parse_pdf.py module
 
 This script will convert each pdf into an Excel file.
@@ -48,13 +51,15 @@ Safe all pdf files in a pdf folder that is located in the folder where batch_par
 
 Example:
 ```
-python batch_parse_pdf.py pdf
+python batch_parse_pdf.py -v pdf
 ```
 ### Arguments:
 
 Required argument:
 - pdf: the path to the folder where the pdf files are located
 
+Optional arguments:
+- v: --verbose mode
 
 ## Authors
 
