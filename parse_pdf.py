@@ -100,6 +100,8 @@ def print_stats(student_data, file_name, verbose_status, slb_list):
                     if student["student_num"] in not_assigned:
                         print(student)
     print()
+    print("*" * 40)
+    print()
 
 
 def write_excel(slb_list, data, outfile):
