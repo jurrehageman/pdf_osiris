@@ -83,7 +83,7 @@ def print_stats(student_data, student_stats, slb_list):
         ]
     print(tabulate(table_stats, headers='firstrow', tablefmt='fancy_grid'))
     print()
-    print("No BML SLBer:")
+    print("Without a BML SLBer:")
     others = [student_data[i] for i in sorted(student_data) if i in student_stats['other_students']]
     print(tabulate(others, headers='keys', tablefmt='fancy_grid'))
     print()
@@ -91,7 +91,7 @@ def print_stats(student_data, student_stats, slb_list):
     more_slb = [student_data[i] for i in sorted(student_data) if i in student_stats['duplicates']]
     print(tabulate(more_slb, headers='keys', tablefmt='fancy_grid'))
     print()
-    print('Students per SLBer:')
+    print('Students per SLBer: (note that some students have more than 1 SLBer)')
     student_per_slb = [["SLBer", "Number"]]
     for i in sorted(student_stats['slb_stats']):
         student_per_slb.append([i, student_stats['slb_stats'][i]])
