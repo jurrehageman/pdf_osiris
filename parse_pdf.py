@@ -1,7 +1,7 @@
 import pdfplumber
 import argparse
 import xlsxwriter
-import collections
+from tabulate import tabulate
 
 # Globals
 slb_file = "slb.csv" 
@@ -61,9 +61,12 @@ def parse_text(data):
             first_name = first_name.split()
             first_name = ' '.join(i for i in first_name if not i.isupper()) # get rid of junk     
             if not student_num in student_data:
-                student_data[student_num] = {'last_name': last_name,
-                                                'first_name': first_name,
-                                                'slb': [slb]
+                student_data[student_num] = {
+                                            'student_num': student_num,
+                                            'last_name': last_name,
+                                            'first_name': first_name,
+                                            'slb': [slb],
+                                             
                 }
             else:
                 student_data[student_num]['slb'].append(slb)
@@ -72,32 +75,27 @@ def parse_text(data):
 
 def print_stats(student_data, student_stats, slb_list):
     print("Stats:")
-    print("Total number of students:", len(student_stats['all_students']))
-    print("Total number of students, BML-R SLBer:", len(student_stats['bml_students']))
-    print("Total number of students, other SLBer:", len(student_stats['other_students']))
-    print("Number of students with multiple SLBers:", len(student_stats['duplicates']))
+    table_stats = [["Item", "Number"],
+        ["Total number of students:", len(student_stats['all_students'])],
+        ["Total number of students, BML-R SLBer:", len(student_stats['bml_students'])],
+        ["Total number of students, other SLBer:", len(student_stats['other_students'])],
+        ["Number of students with multiple SLBers:", len(student_stats['duplicates'])],
+        ]
+    print(tabulate(table_stats, headers='firstrow', tablefmt='fancy_grid'))
     print()
-    print("Not assigned to BML SLBer:")
-    for i in sorted(student_stats["other_students"]):
-        print(i, student_data[i])
+    others = [student_data[i] for i in sorted(student_data) if i in student_stats['other_students']]
+    print(tabulate(others, headers='keys', tablefmt='fancy_grid'))
     print()
     print("More than 1 SLBer:")
-    for i in sorted(student_stats["duplicates"]):
-        print(i, student_data[i])
-    print()
-    print("More than 1 BML-R SLBer:")
-    for student in sorted(student_stats["duplicates"]):
-        slbers = student_data[student]['slb']
-        res = [i for i in slbers if i in slb_list]
-        if len(res) > 1:
-            print(student_data[student])
+    more_slb = [student_data[i] for i in sorted(student_data) if i in student_stats['duplicates']]
+    print(tabulate(more_slb, headers='keys', tablefmt='fancy_grid'))
     print()
     print('Students per SLBer:')
+    student_per_slb = [["SLBer", "Number"]]
     for i in sorted(student_stats['slb_stats']):
-        print(i, student_stats['slb_stats'][i])
-    print()
-    print("*" * 40)
-    print()
+        student_per_slb.append([i, student_stats['slb_stats'][i]])
+    print(tabulate(student_per_slb, headers='firstrow', tablefmt='fancy_grid'))
+    print("-" * 30)
 
 
 def get_student_stats(student_data, slb_list):
@@ -171,7 +169,7 @@ def main():
     print()
     print("Data written to", out_file + ".xlsx")
     print("Done")
-    print("*" * 20)
+    print("=" * 40)
 
 
 if __name__ == "__main__":

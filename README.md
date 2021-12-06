@@ -8,12 +8,12 @@ These instructions will show some examples to run the script
 
 ### Prerequisites
 
-pdfplumber and xlsxwriter need to be installed on your system
+pdfplumber, xlsxwriter and tabulate need to be installed on your system
 
 
 ### Installing
 
-Use pip to install pdfplumber and xlsxwriter.
+Use pip to install pdfplumber, xlsxwriter and tabulate.
 - pdfplumber:
 
 ```
@@ -26,6 +26,11 @@ pip install pdfplumber
 pip install xlsxwriter
 ```
 
+- tabulate
+
+```
+pip install tabulate
+```
 
 ## Running the parse_pdf.py module
 

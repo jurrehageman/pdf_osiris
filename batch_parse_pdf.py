@@ -35,8 +35,10 @@ def read_folder(verbose_status, folder, slb_list):
             create_dir("excel")
             out_file_path = os.path.join("excel", head)
             print("now working on:", out_file_path)
-            parse_pdf.print_stats(student_data, filename, verbose_status, slb_list)
-            parse_pdf.write_excel(slb_list, student_data, out_file_path)
+            student_stats = parse_pdf.get_student_stats(student_data, slb_list)
+            if verbose_status:
+                parse_pdf.print_stats(student_data, student_stats, slb_list)
+            parse_pdf.write_excel(student_data, student_stats, slb_list, out_file_path)
             
 
 def main():
