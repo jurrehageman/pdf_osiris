@@ -44,9 +44,8 @@ def extract_pdf(infile):
 
 def parse_text(data):
     """This needs to be improved"""
-    slb_dict = {}
+    student_data = {}
     for line in data:
-        student_list = []
         item = line.split("\n")
         item = [i for i in item if len(i) > 6] # get rid of BO (*) and CH (*) lines
         slb = item[2][-5: -1]
@@ -62,76 +61,81 @@ def parse_text(data):
                 first_name = first_name[: first_name.find("(")] # sometimes no BO but comma
             first_name = first_name.split()
             first_name = ' '.join(i for i in first_name if not i.isupper()) # get rid of junk     
-            student_dict['student_num'] = student_num
-            student_dict['last_name'] = last_name
-            student_dict['first_name'] = first_name
-            student_dict['slb'] = slb
-            student_list.append(student_dict)
-        slb_dict[slb] = student_list
-    return slb_dict
+            if not student_num in student_data:
 
-
-def print_stats(student_data, file_name, verbose_status, slb_list):
-    print("currently parsing:", file_name)
-    if verbose_status:
-        total_students = 0
-        unique_students = set()
-        slb_ilst_students = set()
-        slb_other = set()
-        print()
-        for slb in sorted(student_data):
-            student_nums = [i["student_num"] for i in student_data[slb]]
-            total_students += len(student_nums)
-            unique_students.update(student_nums)
-            #print("{0:<6}{1:<3} students {2}".format(slb, len(student_data[slb]), student_nums))
-            print("{0:<6}{1:<3} students".format(slb, len(student_data[slb])))
-            if slb in slb_list:
-                slb_ilst_students.update(student_nums)
+                student_data[student_num] = {'last_name': last_name,
+                                                'first_name': first_name,
+                                                'slb': [slb]
+                }
             else:
-                slb_other.update(student_nums)
-        print()
-        print("Total number of students:", total_students)
-        print("Total number of unique students:", len(unique_students))
-        print("Total number of students, ILST SLBer:", len(slb_ilst_students), "(This will be written to Excel)")
-        print("Total number of students, other SLBer:", len(slb_other))
-        not_assigned = slb_other.difference(slb_ilst_students)
-        print("Number of students other SLBer not assigned to ILST SLBer:", len(not_assigned))
-        print()
-        if not_assigned:
-            print("Not assigned:")
-            for slb in sorted(student_data):
-                for student in student_data[slb]:
-                    if student["student_num"] in not_assigned:
-                        print(student)
-        duplicates = slb_other.intersection(slb_ilst_students)
-        print()
-        print("Number of duplicates:", len(duplicates))
-        print()
-        print("Duplicates:")
-        for slb in sorted(student_data):
-                for student in student_data[slb]:
-                    if student["student_num"] in duplicates:
-                        print(student)                  
-        print()
+                student_data[student_num]['slb'].append(slb)
+    return student_data
+
+
+def print_stats(student_data, student_stats, slb_list):
+    print("Stats:")
+    print("Total number of students:", len(student_stats['all_students']))
+    print("Total number of students, BML-R SLBer:", len(student_stats['bml_students']))
+    print("Total number of students, other SLBer:", len(student_stats['other_students']))
+    print("Number of students with multiple SLBers:", len(student_stats['duplicates']))
+    print()
+    print("Not assigned to BML SLBer:")
+    for i in sorted(student_stats["other_students"]):
+        print(i, student_data[i])
+    print()
+    print("More than 1 SLBer:")
+    for i in sorted(student_stats["duplicates"]):
+        print(i, student_data[i])
+    print()
+    print("More than 1 BML-R SLBer:")
+    for student in sorted(student_stats["duplicates"]):
+        slbers = student_data[student]['slb']
+        res = [i for i in slbers if i in slb_list]
+        if len(res) > 1:
+            print(student_data[student])
     print()
     print("*" * 40)
     print()
 
 
-def write_excel(slb_list, data, outfile):
+def get_student_stats(student_data, slb_list):
+    student_stats = {}
+    all_students = [i for i in student_data]
+    bml_students = []
+    for student_num in student_data:
+        slbers = student_data[student_num]['slb']
+        for slber in slbers:
+            if slber in slb_list:
+                bml_students.append(student_num)
+                break
+    other_students = [i for i in student_data if i not in bml_students]
+    duplicates = [i for i in student_data if len(student_data[i]['slb']) > 1]
+    to_write = bml_students + other_students
+    student_stats['all_students'] = all_students
+    student_stats['bml_students'] = bml_students
+    student_stats['other_students'] = other_students
+    student_stats['duplicates'] = duplicates
+    student_stats['to_write'] = to_write
+    return student_stats
+
+
+def write_excel(student_data, student_stats, slb_list, outfile):
     workbook = xlsxwriter.Workbook(outfile + ".xlsx")
     worksheet = workbook.add_worksheet()
     col = 0
     row = 1
-    for slb in sorted(data):
-        if slb in slb_list:
-            for student in data[slb]:
-                col = 0
-                row_data = [student["student_num"], student["last_name"], student["first_name"], student["slb"]]
-                for i in row_data:
-                    worksheet.write(row, col, i)
-                    col += 1
-                row += 1
+    for student in sorted(student_stats['to_write']):
+        col = 0
+        slb = [i for i in student_data[student]["slb"] if i in slb_list]
+        if slb:
+            slb = ", ".join([i for i in student_data[student]["slb"] if i in slb_list])
+        else:
+            slb = ", ".join(student_data[student]["slb"])
+        row_data = [student, student_data[student]['last_name'], student_data[student]["first_name"], slb]
+        for i in row_data:
+            worksheet.write(row, col, i)
+            col += 1
+        row += 1
     worksheet.add_table(0, 0, row - 1, col - 1, {'columns': [{'header': 'Student Nummer'},
                                                             {'header': 'Achternaam'},
                                                             {'header': 'Voornaam'},
@@ -144,12 +148,15 @@ def main():
     args = get_comm_args()
     verbose_status = args.verbose
     in_file = args.pdf_file
+    print("currently parsing:", in_file)
     out_file = args.output_file
     slb_list = read_slb(slb_file)
     pdf_content = extract_pdf(in_file)
     student_data = parse_text(pdf_content)
-    print_stats(student_data, in_file, verbose_status, slb_list)
-    write_excel(slb_list, student_data, out_file)
+    student_stats = get_student_stats(student_data, slb_list)
+    if verbose_status:
+        print_stats(student_data, student_stats, slb_list)
+    write_excel(student_data, student_stats, slb_list, out_file)
     print()
     print("Data written to", out_file + ".xlsx")
     print("Done")
