@@ -51,7 +51,6 @@ def parse_text(data):
         slb = item[2][-5: -1]
         students = item[6:]
         for student in students:
-            student_dict = {}
             student_num = student[0:6].strip()
             comma_pos = student.find(",")
             last_name = student[7:comma_pos].strip()
@@ -62,7 +61,6 @@ def parse_text(data):
             first_name = first_name.split()
             first_name = ' '.join(i for i in first_name if not i.isupper()) # get rid of junk     
             if not student_num in student_data:
-
                 student_data[student_num] = {'last_name': last_name,
                                                 'first_name': first_name,
                                                 'slb': [slb]
@@ -94,6 +92,10 @@ def print_stats(student_data, student_stats, slb_list):
         if len(res) > 1:
             print(student_data[student])
     print()
+    print('Students per SLBer:')
+    for i in sorted(student_stats['slb_stats']):
+        print(i, student_stats['slb_stats'][i])
+    print()
     print("*" * 40)
     print()
 
@@ -108,6 +110,14 @@ def get_student_stats(student_data, slb_list):
             if slber in slb_list:
                 bml_students.append(student_num)
                 break
+    slb_stats = {}
+    for student in student_data:
+        slb_per_student = student_data[student]['slb']
+        for slb in slb_per_student:
+            if not slb in slb_stats:
+                slb_stats[slb] = 1
+            else:
+                slb_stats[slb] += 1
     other_students = [i for i in student_data if i not in bml_students]
     duplicates = [i for i in student_data if len(student_data[i]['slb']) > 1]
     to_write = bml_students + other_students
@@ -116,6 +126,7 @@ def get_student_stats(student_data, slb_list):
     student_stats['other_students'] = other_students
     student_stats['duplicates'] = duplicates
     student_stats['to_write'] = to_write
+    student_stats['slb_stats'] = slb_stats
     return student_stats
 
 
