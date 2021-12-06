@@ -83,6 +83,7 @@ def print_stats(student_data, student_stats, slb_list):
         ]
     print(tabulate(table_stats, headers='firstrow', tablefmt='fancy_grid'))
     print()
+    print("No BML SLBer:")
     others = [student_data[i] for i in sorted(student_data) if i in student_stats['other_students']]
     print(tabulate(others, headers='keys', tablefmt='fancy_grid'))
     print()
