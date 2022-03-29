@@ -56,12 +56,13 @@ Safe all pdf files in a pdf folder that is located in the folder where batch_par
 
 Example:
 ```
-python batch_parse_pdf.py -v pdf
+python batch_parse_pdf.py -v pdf_folder excel_folder
 ```
 ### Arguments:
 
 Required argument:
-- pdf: the path to the folder where the pdf files are located
+- pdf_folder: the path to the folder where the pdf files are located  
+- excel_folder: the path to the folder where the pdf files are located  
 
 Optional arguments:
 - v: --verbose mode
