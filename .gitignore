@@ -1,6 +1,7 @@
 # Python generated files #
 ######################
 .ipynb_checkpoints
+.pyc
 
 # OS generated files #
 ######################
@@ -18,3 +19,8 @@
 *.pyc
 *.xlsx#
 **/__pycache__
+
+
+# log files #
+######################
+.txt
