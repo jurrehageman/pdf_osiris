@@ -37,10 +37,16 @@ def read_folder(verbose_status, in_folder, out_folder, slb_list):
             create_dir(out_folder)
             out_file_path = os.path.join(out_folder, head)
             print("now working on:", out_file_path)
-            student_stats = parse_pdf.get_student_stats(student_data, slb_list)
-            if verbose_status:
-                parse_pdf.print_stats(student_data, student_stats, slb_list)
-            parse_pdf.write_excel(student_data, student_stats, slb_list, out_file_path)
+            if not student_data:
+                print("Warning! no student data found for this module")
+                print()
+                print("-" * 20)
+
+            else:
+                student_stats = parse_pdf.get_student_stats(student_data, slb_list)
+                if verbose_status:
+                    parse_pdf.print_stats(student_data, student_stats, slb_list)
+                parse_pdf.write_excel(student_data, student_stats, slb_list, out_file_path)
             
 
 def main():

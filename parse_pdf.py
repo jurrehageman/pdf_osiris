@@ -45,6 +45,8 @@ def extract_pdf(infile):
 def parse_text(data):
     """This needs to be improved"""
     student_data = {}
+    if "Er zijn geen gegevens gevonden" in data:
+        return student_data
     for line in data:
         item = line.split("\n")
         item = [i for i in item if len(i) > 6] # get rid of BO (*) and CH (*) lines
@@ -163,12 +165,15 @@ def main():
     slb_list = read_slb(slb_file)
     pdf_content = extract_pdf(in_file)
     student_data = parse_text(pdf_content)
-    student_stats = get_student_stats(student_data, slb_list)
-    if verbose_status:
-        print_stats(student_data, student_stats, slb_list)
-    write_excel(student_data, student_stats, slb_list, out_file)
-    print()
-    print("Data written to", out_file + ".xlsx")
+    if not student_data:
+        print("Warning! no student data found for this module")
+    else:
+        student_stats = get_student_stats(student_data, slb_list)
+        if verbose_status:
+            print_stats(student_data, student_stats, slb_list)
+        write_excel(student_data, student_stats, slb_list, out_file)
+        print()
+        print("Data written to", out_file + ".xlsx")
     print("Done")
     print("=" * 40)
 
